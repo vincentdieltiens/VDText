@@ -1,0 +1,28 @@
+.file_editor {
+	width: 100%;
+	height: 100%;
+	/*display: -webkit-box;
+	-webkit-box-orient: horizontal;*/
+	font-familiy: Monaco, Verdana;
+	position: relative;
+	background-color: #fff;
+	display: none;
+}
+
+.file_editor.active {
+	display: block;
+}
+
+.file_editor .editor {
+	height: 100%;
+	width: 100%;
+}
+
+.file_editor .editor .line {
+	height: 16px;
+	line-height: 14px;
+}
+
+.file_editor .editor .line:hover {
+	background-color: #eee;
+}
