@@ -1,1 +1,7 @@
 IN DEVELOPMENT :)
+
+After downloading the code, you must give the permission to execute to the file update_vendors.sh
+and execute it :
+
+    $ chmmod a+x update_vendors.sh
+    $ ./update_vendors.sh
