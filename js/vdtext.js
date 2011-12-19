@@ -25,6 +25,10 @@ var VDText = new Class({
 		
 		this.tabPanel = new TabPanel($$('#tabs'), $$('#pages'));
 		
+		this.tabPanel.addEvent('newTab', function(){
+			self.newFile(true);
+		});
+		
 		$(document).addEvent('keydown', function(event){
 			
 			if( event.key == "s" && event.meta ) {
@@ -38,6 +42,11 @@ var VDText = new Class({
 	openFile: function() {
 		var fileEditor = new FileEditor($$('#file_editor')[0]);
 		
+	},
+	newFile: function(active) {
+		this.loadFile("Untitled "+this.untitled, "", "untitled_"+this.untitled, active)
+		
+		this.untitled++;
 	},
 	loadFile: function(filename, fileContent, pageId, active) {
 		
@@ -62,7 +71,8 @@ var VDText = new Class({
 		});
 	},
 	documents: [],
-	tabPanel: null
+	tabPanel: null,
+	untitled: 1
 });
 
 var TabPanel = new Class({
@@ -75,7 +85,8 @@ var TabPanel = new Class({
 		
 		this.$tabsContainer.addEvent('dblclick', function(event){
 			if( event.target.match('ul') ) {
-				this.fireEvent('newTab');
+				console.log('fireEvent newTab');
+				self.fireEvent('newTab');
 			}
 		});
 	},
