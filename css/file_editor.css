@@ -1,11 +1,13 @@
 .file_editor {
 	width: 100%;
-	height: 100%;
-	/*display: -webkit-box;
-	-webkit-box-orient: horizontal;*/
+	height: auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 26px; /* tab height !!! */
+	right: 0;
+	
 	font-familiy: Monaco, Verdana;
-	position: relative;
-	background-color: #fff;
 	display: none;
 }
 
@@ -14,15 +16,13 @@
 }
 
 .file_editor .editor {
-	height: 100%;
 	width: 100%;
+	
+}
+.file_editor .editor .CodeMirror {
+	height: 100%;
 }
 
-.file_editor .editor .line {
-	height: 16px;
-	line-height: 14px;
-}
-
-.file_editor .editor .line:hover {
-	background-color: #eee;
+.file_editor .editor .CodeMirror .CodeMirror-scroll {
+	height: 100%;
 }
