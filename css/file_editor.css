@@ -26,3 +26,7 @@
 .file_editor .editor .CodeMirror .CodeMirror-scroll {
 	height: 100%;
 }
+
+.file_editor .CodeMirror-cursor {
+	
+}
