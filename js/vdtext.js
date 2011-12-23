@@ -33,7 +33,7 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 				self.newFile(true);
 			});
 			
-			var fileSystem = new httpFileSystem.HttpFileSystem('localhost', {
+			this.fileSystem = new httpFileSystem.HttpFileSystem('localhost', {
 				save: '/vdtext/connector/save.php',
 				open: '/vdtext/connector/open.php'
 			});
@@ -45,14 +45,30 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 					event.preventDefault();
 					var page = self.tabPanel.getActivePage();
 					
-					fileSystem.save(page.getContent(), page.getFilename(), function(){
+					self.fileSystem.save(page.getContent(), page.getFilename(), function(){
 						// Do what you want
 					});
 				}
 			});
 		},
-		openFile: function() {
-			// TODO
+		openFile: function(filename, pageId, active) {
+			var self = this;
+			
+			active = $defined(active) && active == true;
+			
+			// Creates the html Page
+			var $page = new Element('div', {
+				'class': 'file_editor',
+				'id': pageId
+			});
+			
+			this.fileSystem.open(filename, function(content) {
+				var fileContent = content;
+				
+				var fileEditor = new file_editor.FileEditor($page, filename, fileContent);
+
+				self.tabPanel.add(filename, pageId, fileEditor, active);
+			});
 		},
 		newFile: function(active) {
 			this.loadFile("Untitled "+this.untitled, "", "untitled_"+this.untitled, active)	
@@ -78,7 +94,8 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 			this.tabPanel.add(filename, pageId, fileEditor, active);
 		},
 		tabPanel: null,
-		untitled: 1
+		untitled: 1,
+		fileSystem: null
 	});
 	
 	return {

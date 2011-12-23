@@ -26,15 +26,14 @@ define(["js/fs/FileSystem"], function(fss) {
 
 			request.send();
 		},
-		open: function(content, open, done) {
-			var request = new Request({
+		open: function(path, done) {
+			var request = new Request.JSON({
 				url: this.domain+this.scripts.open,
 				data: {
-					content: content,
 					path: path
 				},
-				onComplete: function() {
-					done();
+				onComplete: function(data) {
+					done(data.content);
 				}
 			});
 			
