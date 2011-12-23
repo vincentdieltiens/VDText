@@ -19,144 +19,69 @@ Element.implement({
 	}
 });
 
-var VDText = new Class({
-	initialize: function() {
-		var self = this;
-		
-		this.tabPanel = new TabPanel($$('#tabs'), $$('#pages'));
-		
-		this.tabPanel.addEvent('newTab', function(){
-			self.newFile(true);
-		});
-		
-		$(document).addEvent('keydown', function(event){
+define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFileSystem, file_editor, tab_panel) {
+	var VDText = new Class({
+		initialize: function() {
+			var self = this;
 			
-			if( event.key == "s" && event.meta ) {
-			  event.preventDefault();
-			  console.log('save it');
-			}
+			// Create the tab panel
+			this.tabPanel = new tab_panel.TabPanel($$('#tabs'), $$('#pages'));
 			
-		});
-		
-	},
-	openFile: function() {
-		var fileEditor = new FileEditor($$('#file_editor')[0]);
-		
-	},
-	newFile: function(active) {
-		this.loadFile("Untitled "+this.untitled, "", "untitled_"+this.untitled, active)
-		
-		this.untitled++;
-	},
-	loadFile: function(filename, fileContent, pageId, active) {
-		
-		var $page = new Element('div', {
-			'class': 'file_editor',
-			'id': pageId
-		});
-		
-		active = $defined(active) && active == true;
-		
-		this.tabPanel.addTab(filename, pageId, $page, active);
-		
-		var fileEditor = new FileEditor($page, filename, fileContent);
-		
-		$page.addEvent('active', function() {
-			fileEditor.refresh();
-		});
-		
-		this.documents.push({
-			'page': pageId,
-			'editor': fileEditor
-		});
-	},
-	documents: [],
-	tabPanel: null,
-	untitled: 1
-});
+			// Get event when tab panel says that the user wants to create
+			// a new tab
+			this.tabPanel.addEvent('newTab', function(){
+				self.newFile(true);
+			});
+			
+			var fileSystem = new httpFileSystem.HttpFileSystem('localhost', {
+				save: '/vdtext/connector/save.php',
+				open: '/vdtext/connector/open.php'
+			});
+			
+			// When the user click on cmd+s
+			$(document).addEvent('keydown', function(event){
+				if( event.key == "s" && event.meta ) {
+					// preventDefault prevent the user to execute his own shortcut !
+					event.preventDefault();
+					var page = self.tabPanel.getActivePage();
+					
+					fileSystem.save(page.getContent(), page.getFilename(), function(){
+						// Do what you want
+					});
+				}
+			});
+		},
+		openFile: function() {
+			// TODO
+		},
+		newFile: function(active) {
+			this.loadFile("Untitled "+this.untitled, "", "untitled_"+this.untitled, active)	
+			this.untitled++;
+		},
+		loadFile: function(filename, fileContent, pageId, active) {
+			active = $defined(active) && active == true;
+			
+			// Creates the html Page
+			var $page = new Element('div', {
+				'class': 'file_editor',
+				'id': pageId
+			});
+			
+			// Creates the editor for this page
+			var fileEditor = new file_editor.FileEditor($page, filename, fileContent);
+			/* Done is the FileEditor class now (by extending page)
+				this.addEvent('active', function() {
+				this.refresh();
+			});*/
 
-var TabPanel = new Class({
-	Implements: Events,
-	initialize: function($tabPanelDiv, $pagesContainer) {
-		var self = this;
-		
-		this.$tabsContainer = $tabPanelDiv;
-		this.$pagesContainer = $pagesContainer;
-		
-		this.$tabsContainer.addEvent('dblclick', function(event){
-			if( event.target.match('ul') ) {
-				console.log('fireEvent newTab');
-				self.fireEvent('newTab');
-			}
-		});
-	},
-	addTab: function(name, pageId, $page, active) {
-		var self = this;
-		
-		// Create new Tab
-		var $tab = new Element('li').appendText(name);
-		$tab.set('page', pageId);
-		
-		// Add the tab into the tabs container
-		$tab.inject(this.$tabsContainer.getElement('ul')[0], 'bottom');
-		
-		// Add the page into the pages container
-		$page.inject(this.$pagesContainer[0], 'bottom');
-		
-		// Add Event when tab is clicked ?
-		$tab.addEvent('click', function() {
-			self.activeTabAndPage($tab, $page);
-		});
-		
-		// If the new tab is the active one, before deactive the current active tab)
-		if( $defined(active) && active ) {
-			self.activeTabAndPage($tab, $page);
-		}
-	},
-	activeTabAndPage: function($tab, $page) {
-		$$(this.$tabsContainer.getElement('.active')).removeClass('active');
-		$$(this.$pagesContainer.getElements('.active')).removeClass('active');
-		
-		$tab.addClass('active');
-		$page.addClass('active');
-		
-		$page.fireEvent('active');
-	},
-	$tabsContainer: null,
-	$pagesContainer: null,
-	$tabs: []
-});
-
-var FileEditor = new Class({
-	initialize: function($div, filename, fileContent) {
-		var self = this;
-		
-		this.div = $div;
-		
-		this.$editor = new Element('div', {
-			'class': 'editor'
-		});
-		this.$editor.inject($div, 'bottom');
-		
-		this.$textarea = new Element('textarea');
-		this.$textarea.set('name', filename);
-		this.$textarea.appendText(fileContent);
-		this.$textarea.inject(this.$editor);
-		
-		this.codeMirror = CodeMirror.fromTextArea(this.$textarea, {
-			lineNumbers: true,
-			gutter: true,
-			matchBrackets: true,
-			onChange: function() {
-				
-			}
-		});
-	},
-	refresh: function() {
-		this.codeMirror.refresh();
-	},
-	div: null,
-	$textarea: null,
-	$editor: null,
-	codeMirror: null
+			// Add the file editor to the tab panel
+			this.tabPanel.add(filename, pageId, fileEditor, active);
+		},
+		tabPanel: null,
+		untitled: 1
+	});
+	
+	return {
+		VDText: VDText
+	};
 });

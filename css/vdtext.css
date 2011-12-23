@@ -27,6 +27,7 @@ body {
 	padding: 0;
 	margin: 0;
 	padding-left: 10px;
+	cursor: default;
 }
 
 #tabs ul li {

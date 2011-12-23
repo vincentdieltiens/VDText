@@ -8,13 +8,18 @@
 		<script type="text/javascript" src="js/mootools/mootools-1.2.5-core-yc.js"></script>
 		<script type="text/javascript" src="lib/codemirror/lib/codemirror.js"></script>
 		<script type="text/javascript" src="lib/codemirror/mode/javascript/javascript.js"></script>
-		<script type="text/javascript" src="js/vdtext.js"></script>
 		<script type="text/javascript">
 			window.addEvent('domready', function() {
-				var app = new VDText();
 				
-				app.loadFile("test1.js", "function load() {}", "test1", true);
-				app.loadFile("test2.js", "function load2() {}", "test2", false);
+				require({
+					path: {}
+				}, ['js/vdtext'], function(vdtext) {
+					var app = new vdtext.VDText();
+					
+					app.loadFile("test1.js", "function load() {}", "test1", true);
+					app.loadFile("test2.js", "function load2() {}", "test2", false);
+				});
+				
 			});
 		</script>
 	</head>
