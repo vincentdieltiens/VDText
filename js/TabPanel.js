@@ -1,4 +1,5 @@
-define([], function(){
+define([], function() {
+	
 	var TabPanel = new Class({
 		Implements: Events,
 		initialize: function($tabPanelDiv, $pagesContainer) {
@@ -15,11 +16,35 @@ define([], function(){
 		},
 		add: function(name, pageId, page, active) {
 			var self = this;
-
+			
 			// Create new Tab
-			var $tab = new Element('li').appendText(name);
+			var $tab = new Element('li');
 			    $tab.set('page', pageId);
-
+				//$tab.addClass('waiting');
+			
+			var $filenameSpan = new Element('span');
+				$filenameSpan.appendText(name);
+				$filenameSpan.addClass('filename');
+			
+			var $statusSpan = new Element('span');
+				$statusSpan.addClass('status');
+				
+			var $waitingImg = new Element('img');
+				$waitingImg.set('src', 'theme/tabs/waiting.gif');
+			
+			$waitingImg.inject($statusSpan);
+			
+			$statusSpan.inject($tab, 'top');
+			$filenameSpan.inject($tab, 'bottom');
+			
+			page.addEvent('start_waiting', function() {
+				$tab.addClass('waiting');
+			});
+			
+			page.addEvent('stop_waiting', function() {
+				$tab.removeClass('waiting');
+			});
+			
 			this.pages.push(page);
 			var index = this.pages.length-1;
 

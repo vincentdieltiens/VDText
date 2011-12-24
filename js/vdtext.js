@@ -64,11 +64,12 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 			
 			var fileEditor = new file_editor.FileEditor($page, filename, "");
 			self.tabPanel.add(filename, pageId, fileEditor, active);
+			fileEditor.fireEvent('start_waiting');
 			
 			this.fileSystem.open(filename, function(content) {
 				var fileContent = content;
 				fileEditor.setContent(content);
-				
+				fileEditor.fireEvent('stop_waiting');
 			});
 		},
 		newFile: function(active) {

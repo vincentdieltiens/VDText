@@ -46,13 +46,53 @@ body {
 	border-top-right-radius: 4px;
 	text-align: center;
 	background: #ddd url('../theme/tabs/tab_inactive_bg.png') repeat-x;
-	font-size: 14px;
-	line-height: 12px;
 	margin-right: 2px;
 }
 
 #tabs ul li.active {
 	background: #fff url('../theme/tabs/tab_active_bg.png') repeat-x;
+}
+
+#tabs ul li span.filename {
+	font-size: 14px;
+	float: left;
+	line-height: 10px;
+	height: 16px;
+	padding: 0;
+	margin: 0;
+	margin-bottom: 10px;
+}
+
+#tabs ul li span.status img {
+	display: none;
+}
+
+#tabs ul li span.status {
+	float: left;
+	margin-right: 5px;
+	height: 100%;
+	width: 11px;
+	background: transparent url('../theme/tabs/close.png') no-repeat;
+}
+
+#tabs ul li span.status:hover {
+	background: transparent url('../theme/tabs/close_hover.png') no-repeat;
+}
+
+#tabs ul li.modified span.status {
+	background: transparent url('../theme/tabs/close_modified.png') no-repeat;
+}
+
+#tabs ul li.modified span.status:hover {
+	background: transparent url('../theme/tabs/close_modified_hover.png') no-repeat;
+}
+
+#tabs ul li.waiting span.status {
+	background: none;
+}
+
+#tabs ul li.waiting span.status img {
+	display: block;
 }
 
 #pages {
