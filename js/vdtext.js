@@ -62,12 +62,13 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 				'id': pageId
 			});
 			
+			var fileEditor = new file_editor.FileEditor($page, filename, "");
+			self.tabPanel.add(filename, pageId, fileEditor, active);
+			
 			this.fileSystem.open(filename, function(content) {
 				var fileContent = content;
+				fileEditor.setContent(content);
 				
-				var fileEditor = new file_editor.FileEditor($page, filename, fileContent);
-
-				self.tabPanel.add(filename, pageId, fileEditor, active);
 			});
 		},
 		newFile: function(active) {
@@ -95,7 +96,8 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 		},
 		tabPanel: null,
 		untitled: 1,
-		fileSystem: null
+		fileSystem: null,
+		shortcutManager: null
 	});
 	
 	return {

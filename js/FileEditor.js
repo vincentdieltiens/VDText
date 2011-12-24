@@ -37,6 +37,9 @@ define(['js/Page'], function(page) {
 		getContent: function() {
 			return this.codeMirror.getValue();
 		},
+		setContent: function(content) {
+			return this.codeMirror.setValue(content);
+		},
 		getFilename: function() {
 			return this.filename;
 		},
