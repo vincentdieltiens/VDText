@@ -24,7 +24,7 @@ define(['js/Page'], function(page) {
 				gutter: true,
 				matchBrackets: true,
 				onChange: function() {
-
+					self.setDirty(true);
 				}
 			});
 		},
@@ -49,11 +49,26 @@ define(['js/Page'], function(page) {
 		save: function() {
 			console.log('save '+this.filename);
 		},
+		setOnDisk: function(onDisk) {
+			this.onDisk = onDisk;
+		},
+		isOnDisk: function() {
+			return this.onDisk;
+		},
+		setDirty: function(dirty) {
+			this.dirty = dirty;
+			this.fireEvent('dirty', { dirty: dirty });
+		},
+		isDirty: function() {
+			return this.dirty;
+		},
 		$pageDiv: null,
 		$textarea: null,
 		$editor: null,
 		codeMirror: null,
-		filename: null
+		filename: null,
+		dirty: false,
+		onDisk: false
 	});
 	
 	return {

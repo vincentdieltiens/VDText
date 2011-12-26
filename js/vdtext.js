@@ -19,6 +19,12 @@ Element.implement({
 	}
 });
 
+Array.implement({
+	removeAtIndex: function(index) {
+		return this.splice(index, 1);
+	}
+});
+
 define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFileSystem, file_editor, tab_panel) {
 	var VDText = new Class({
 		initialize: function() {
@@ -43,12 +49,19 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 				if( event.key == "s" && event.meta ) {
 					// preventDefault prevent the user to execute his own shortcut !
 					event.preventDefault();
-					var page = self.tabPanel.getActivePage();
-					
-					self.fileSystem.save(page.getContent(), page.getFilename(), function(){
-						// Do what you want
-					});
+					self.saveFile(self.tabPanel.getActiveIndex());
 				}
+			});
+		},
+		saveFile: function(index) {
+			var self = this;
+			
+			var page = self.tabPanel.getPage(index);
+			page.fireEvent('start_waiting');
+			
+			self.fileSystem.save(page.getContent(), page.getFilename(), function(){
+				page.fireEvent('stop_waiting');
+				page.setDirty(false);
 			});
 		},
 		openFile: function(filename, pageId, active) {
@@ -70,6 +83,7 @@ define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFi
 				var fileContent = content;
 				fileEditor.setContent(content);
 				fileEditor.fireEvent('stop_waiting');
+				fileEditor.setDirty(false);
 			});
 		},
 		newFile: function(active) {

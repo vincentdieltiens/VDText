@@ -79,11 +79,11 @@ body {
 	background: transparent url('../theme/tabs/close_hover.png') no-repeat;
 }
 
-#tabs ul li.modified span.status {
+#tabs ul li.dirty span.status {
 	background: transparent url('../theme/tabs/close_modified.png') no-repeat;
 }
 
-#tabs ul li.modified span.status:hover {
+#tabs ul li.dirty span.status:hover {
 	background: transparent url('../theme/tabs/close_modified_hover.png') no-repeat;
 }
 

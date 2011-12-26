@@ -20,29 +20,54 @@ define([], function() {
 			// Create new Tab
 			var $tab = new Element('li');
 			    $tab.set('page', pageId);
-				//$tab.addClass('waiting');
 			
+			// Create the filename span
 			var $filenameSpan = new Element('span');
 				$filenameSpan.appendText(name);
 				$filenameSpan.addClass('filename');
 			
+			// Create the status span
 			var $statusSpan = new Element('span');
 				$statusSpan.addClass('status');
-				
+			
+			// Create the waiting image
 			var $waitingImg = new Element('img');
 				$waitingImg.set('src', 'theme/tabs/waiting.gif');
 			
+			// Inject elements
 			$waitingImg.inject($statusSpan);
-			
 			$statusSpan.inject($tab, 'top');
 			$filenameSpan.inject($tab, 'bottom');
 			
+			// When a page get the waiting event, indicate it in the tab
 			page.addEvent('start_waiting', function() {
 				$tab.addClass('waiting');
 			});
 			
 			page.addEvent('stop_waiting', function() {
 				$tab.removeClass('waiting');
+			});
+			
+			page.addEvent('dirty', function(data) {
+				if( data.dirty == true ) {
+					$tab.addClass('dirty');
+				} else {
+					$tab.removeClass('dirty');
+				}
+			});
+			
+			$statusSpan.addEvent('click', function(event) {
+				if( !this.hasClass('dirty') ) {
+					event.stopPropagation();
+					
+					var tabIndex = self.getParentTabIndex($statusSpan);
+					if( tabIndex == null ) {
+						throw new Error("tab not found !");
+					}
+					
+					self.close(tabIndex);
+					
+				}
 			});
 			
 			this.pages.push(page);
@@ -63,12 +88,13 @@ define([], function() {
 			if( $defined(active) && active ) {
 				self.activePage($tab, page);
 			}
-			self.activePageIndex(0);
+			
 		},
 		activePage: function($tab, page) {
+			
 			var self = this;
-			$$(this.$tabsContainer.getElement('.active')).removeClass('active');
-			$$(this.$pagesContainer.getElements('.active')).removeClass('active');
+			
+			self.deactiveTabAndPage();
 
 			Array.each(this.$tabsContainer.getElements('li')[0], function(item, index) {
 				if( item == $tab ) {
@@ -83,25 +109,85 @@ define([], function() {
 			page.fireEvent('active');
 		},
 		activePageIndex: function(index) {
-			if( !$defined(index) && index < this.$tabsContainer.getElements('li')[0].length ) {
+			var self = this;
+			
+			if( !$defined(index) || index < 0 || index >= this.pages.length ) {
 				return;
 			}
-
-			this.active = index;
-
-			$$(this.$tabsContainer.getElement('.active')).removeClass('active');
-			$$(this.$pagesContainer.getElements('.active')).removeClass('active');
-
-			this.$tabsContainer.getElements('li')[0][index].addClass('active');
-			this.$pagesContainer.getElements('div')[0][index].addClass('active');
-
+			
+			this.deactiveTabAndPage();
+			
+			this.getTab(index).addClass('active');
+			this.getPage(index).getElement().addClass('active');
+			
 			this.pages[index].fireEvent('active');
+		},
+		deactiveTabAndPage: function() {
+			if( this.$tabsContainer.getElement('.active')[0] != null ) {
+				this.$tabsContainer.getElement('.active')[0].removeClass('active');	
+			}
+			
+			if( this.$pagesContainer.getElement('.active')[0] != null ) {
+				this.$pagesContainer.getElement('.active')[0].removeClass('active');
+			}
+		},
+		getParentTab: function($item) {
+			return $item.getParent('li');
+		},
+		getParentTabIndex: function($item) {
+			var $tab = this.getParentTab($item);
+			
+			var index = null;
+			this.$tabsContainer.getElements('li')[0].each(function($currentTab, i) {
+				if( $tab == $currentTab ) {
+					index = i;
+				}
+			});
+			
+			return index;
 		},
 		getActiveIndex: function() {
 			return this.active;
 		},
 		getActivePage: function() {
 			return this.pages[this.getActiveIndex()];
+		},
+		getPage: function(index) {
+			return this.pages[index]
+		},
+		getActiveTab: function() {
+			return this.getTab(this.getActiveIndex());
+		},
+		getTab: function(index) {
+			return this.$tabsContainer.getElements('li')[0][index];
+		},
+		isLastTab: function(index) {
+			return (index == (this.pages.length-1));
+		},
+		close: function(index) {
+			
+			if( this.pages.length == 0 ) {
+				return;
+			}
+			
+			var wasLastTab = this.isLastTab(index);
+			
+			this.getPage(index).getElement().destroy();
+			this.getTab(index).destroy();
+			
+			for(i=index; i < this.pages.length-1; i++) {
+				this.pages[i] = this.pages[i+1];
+			}
+			this.pages.removeAtIndex(this.pages.length-1);
+			
+			if(  this.pages.length > 0 ) {
+				
+				if( wasLastTab ) {
+					this.activePageIndex(index-1);
+				} else {
+					this.activePageIndex(index);
+				}
+			}
 		},
 		$tabsContainer: null,
 		$pagesContainer: null,
