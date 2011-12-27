@@ -18,7 +18,14 @@ define(['js/Page'], function(page) {
 			this.$textarea.set('name', filename);
 			this.$textarea.appendText(fileContent);
 			this.$textarea.inject(this.$editor);
-
+			
+			this.addEvent('close', function(callback) {
+				if( self.isDirty() ) {
+					alert('File is unsaved, do you want to save it ?')
+					callback(false);
+				}
+			});
+			
 			this.codeMirror = CodeMirror.fromTextArea(this.$textarea, {
 				lineNumbers: true,
 				gutter: true,
@@ -61,6 +68,9 @@ define(['js/Page'], function(page) {
 		},
 		isDirty: function() {
 			return this.dirty;
+		},
+		close: function() {
+			return !this.isDirty();
 		},
 		$pageDiv: null,
 		$textarea: null,

@@ -13,6 +13,9 @@ define({
 		getElement: function() {
 			// Must be implemented
 			return null;
+		},
+		close: function() {
+			return false;
 		}
 	})
 });

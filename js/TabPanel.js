@@ -57,17 +57,19 @@ define([], function() {
 			});
 			
 			$statusSpan.addEvent('click', function(event) {
-				if( !this.hasClass('dirty') ) {
-					event.stopPropagation();
-					
-					var tabIndex = self.getParentTabIndex($statusSpan);
-					if( tabIndex == null ) {
-						throw new Error("tab not found !");
-					}
-					
-					self.close(tabIndex);
-					
+				event.stopPropagation();
+				
+				var tabIndex = self.getParentTabIndex($statusSpan);
+				if( tabIndex == null ) {
+					throw new Error("tab not found !");
 				}
+				
+				self.getPage(tabIndex).fireEvent('close', function(close) {
+					alert('close ? '+close)
+				});
+				/*if( self.getPage(tabIndex).close() ) {
+					self.close(tabIndex);
+				}*/
 			});
 			
 			this.pages.push(page);
