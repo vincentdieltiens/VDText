@@ -25,9 +25,27 @@ Array.implement({
 	}
 });
 
-define(['js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(httpFileSystem, file_editor, tab_panel) {
+define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(menu, httpFileSystem, file_editor, tab_panel) {
 	var VDText = new Class({
 		initialize: function() {
+			
+			var mainMenu = new menu.Menu($$('#toolbar')[0]);
+			
+			var viewport = Ext.create('Ext.Viewport', {
+				id: 'border-example',
+				layout: 'border',
+				items: [
+					{
+						region: 'north',
+						contentEl: 'toolbar'
+					},
+					{
+						region: 'center',
+						contentEl: 'tabPanel'
+					}
+				]
+			});
+			
 			var self = this;
 			
 			// Create the tab panel
