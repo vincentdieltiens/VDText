@@ -25,7 +25,7 @@ Array.implement({
 	}
 });
 
-define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(menu, httpFileSystem, file_editor, tab_panel) {
+define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/ShortcutManager'], function(menu, httpFileSystem, file_editor, tab_panel, shortcut_manager) {
 	var VDText = new Class({
 		initialize_gui: function() {
 			this.viewport = Ext.create('Ext.Viewport', {
@@ -46,8 +46,6 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 		initialize: function() {
 			var self = this;
 			
-			
-			
 			var mainMenu = new menu.Menu($$('#toolbar')[0]);
 			
 			this.initialize_gui();
@@ -67,11 +65,15 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 			});
 			
 			// When the user click on cmd+s
-			$(document).addEvent('keydown', function(event){
-				if( event.key == "s" && event.meta ) {
-					// preventDefault prevent the user to execute his own shortcut !
-					event.preventDefault();
+			var shortcutManager = new shortcut_manager.ShortcutManager($(window), {
+				'preventDefaultAll': true,
+			}, {
+				'cmd+s': function(event) {
 					self.saveFile(self.tabPanel.getActiveIndex());
+				},
+				'cmd+n': function(event) {
+					alert('cmd+t');
+					self.newFile(true);
 				}
 			});
 		},

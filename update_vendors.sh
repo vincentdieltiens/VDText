@@ -8,20 +8,17 @@ function fetch_lib {
 	dir=$1
 	git_url=$2
 	
-	if [ ! -e lib/$dir ]; then
-		echo "mkdir"
-		mkdir lib/$dir
+	if [ ! -e $dir ]; then
+		git clone $git_url $dir
+	else
+		cd $dir
+		git fetch $git_url
 	fi
-	echo "2"
-	cd lib/$dir
-	echo "3"
-	git fetch $git_url
-	
-	echo "4"
+
 	cd $original_dir
 }
 
 ##############
 ## Code Mirror
 ##############
-fetch_lib codemirror git://github.com/marijnh/CodeMirror2.git
+fetch_lib lib/codemirror git://github.com/marijnh/CodeMirror2.git
