@@ -65,7 +65,9 @@ define([], function() {
 				}
 				
 				self.getPage(tabIndex).fireEvent('close', function(close) {
-					alert('close ? '+close)
+					if( close ) {
+						self.close(tabIndex);
+					}
 				});
 				/*if( self.getPage(tabIndex).close() ) {
 					self.close(tabIndex);

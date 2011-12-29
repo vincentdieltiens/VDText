@@ -1,4 +1,4 @@
-define(['js/Page'], function(page) {
+define(['js/Page', 'js/MessageBox'], function(page, messageBox) {
 	var FileEditor = new Class({
 		Extends: page.Page,
 		initialize: function($pageDiv, filename, fileContent) {
@@ -21,8 +21,14 @@ define(['js/Page'], function(page) {
 			
 			this.addEvent('close', function(callback) {
 				if( self.isDirty() ) {
-					alert('File is unsaved, do you want to save it ?')
-					callback(false);
+					
+					new messageBox.MessageBox({
+						title: 'File not saved',
+						msg: 'This file has not been saved, really close it ?',
+						fn: function(r) {
+							callback(r=='yes');
+						}
+					});
 				}
 			});
 			
