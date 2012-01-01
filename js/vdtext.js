@@ -25,8 +25,9 @@ Array.implement({
 	}
 });
 
-define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], function(menu, httpFileSystem, file_editor, tab_panel) {
+define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/ShortcutManager.js', 'js/Project.js'], function(menu, httpFileSystem, file_editor, tab_panel, shortcut_manager, project) {
 	var VDText = new Class({
+		Implements: Events,
 		initialize_gui: function() {
 			this.viewport = Ext.create('Ext.Viewport', {
 				id: 'border-example',
@@ -46,9 +47,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 		initialize: function() {
 			var self = this;
 			
-			
-			
-			var mainMenu = new menu.Menu($$('#toolbar')[0]);
+			var mainMenu = new menu.Menu($$('#toolbar')[0], this);
 			
 			this.initialize_gui();
 			
@@ -61,19 +60,23 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 				self.newFile(true);
 			});
 			
-			this.fileSystem = new httpFileSystem.HttpFileSystem('localhost', {
-				save: '/vdtext/connector/save.php',
-				open: '/vdtext/connector/open.php'
+			this.addEvent('open_project', function(event) {
+				var files = event.target.files;
+				
+				for (var i = 0, f; f = files[i]; i++) {
+					self.openProject(f);
+				}
 			});
 			
 			// When the user click on cmd+s
-			$(document).addEvent('keydown', function(event){
-				if( event.key == "s" && event.meta ) {
-					// preventDefault prevent the user to execute his own shortcut !
-					event.preventDefault();
+			var shortcutManager = new shortcut_manager.ShortcutManager($(window), {
+				preventDefaultAll: true
+			}, {
+				'cmd+s': function() {
 					self.saveFile(self.tabPanel.getActiveIndex());
 				}
 			});
+			
 		},
 		saveFile: function(index) {
 			var self = this;
@@ -81,7 +84,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 			var page = self.tabPanel.getPage(index);
 			page.fireEvent('start_waiting');
 			
-			self.fileSystem.save(page.getContent(), page.getFilename(), function(){
+			self.project.getFileSystem().save(page.getContent(), page.getFilename(), function(){
 				page.fireEvent('stop_waiting');
 				page.setDirty(false);
 			});
@@ -101,7 +104,8 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 			self.tabPanel.add(filename, pageId, fileEditor, active);
 			fileEditor.fireEvent('start_waiting');
 			
-			this.fileSystem.open(filename, function(content) {
+			console.log(self.project.getFileSystem());
+			self.project.getFileSystem().open(filename, function(content) {
 				var fileContent = content;
 				fileEditor.setContent(content);
 				fileEditor.fireEvent('stop_waiting');
@@ -131,11 +135,29 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel'], func
 			// Add the file editor to the tab panel
 			this.tabPanel.add(filename, pageId, fileEditor, active);
 		},
+		openProject: function(file) {
+			var self = this;
+			var reader = new FileReader();
+			
+			reader.onload = (function(theFile) {
+				return function(e) {
+					var conf = JSON.decode(e.target.result);
+					self.project = new project.Project();
+					self.project.open([httpFileSystem], conf);
+					self.project.getFileSystem().list('/', function(){
+						
+					});
+					self.fireEvent('file_system_initialized');
+				}
+			})(file);
+			
+			reader.readAsText(file);
+		},
 		tabPanel: null,
 		untitled: 1,
-		fileSystem: null,
 		shortcutManager: null,
-		viewport: null
+		viewport: null,
+		project: null
 	});
 	
 	return {
