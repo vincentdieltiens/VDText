@@ -29,6 +29,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 	var VDText = new Class({
 		Implements: Events,
 		initialize_gui: function() {
+			
 			this.viewport = Ext.create('Ext.Viewport', {
 				id: 'border-example',
 				layout: 'border',
@@ -40,6 +41,13 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 					{
 						region: 'center',
 						contentEl: 'tabPanel'
+					},
+					{
+						region: 'west',
+						contentEl: 'fileList',
+						width: 150,
+						//collapsible: true,
+						resizable: true
 					}
 				]
 			});
@@ -141,9 +149,56 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 			
 			reader.onload = (function(theFile) {
 				return function(e) {
+					
 					var conf = JSON.decode(e.target.result);
 					self.project = new project.Project();
 					self.project.open([httpFileSystem], conf);
+					
+					/*var store = Ext.create('Ext.data.TreeStore', {
+						proxy: {
+							type: 'ajax',
+							url: 'get-nodes.php'
+						},
+						root: {
+							text: 'Ext JS',
+							id: 'src',
+							expanded: true
+						},
+						folderSort: true,
+						sorters: [{
+							property: 'text',
+							direction: 'ASC'
+						}]
+					});
+					
+					var tree = Ext.create('Ext.tree.Panel', {
+						store: store,
+						viewConfig: {
+							plugins: {
+								//ptype: 'treeviewdragdrop'
+							}
+						},
+						renderTo: 'fileList',
+						height: 300,
+						width: 150,
+						title: 'Files',
+						useArrows: true,
+						dockedItems: [{
+							xtype: 'toolbar',
+							items: [{
+								text: 'Expand All',
+								handler: function() {
+									tree.expandAll();
+								}
+							}, {
+								text: 'Collapse All',
+								handler: function() {
+									tree.collapseAll();
+								}
+							}]
+						}]
+					});*/
+					
 					self.project.getFileSystem().list('/', function(){
 						
 					});
