@@ -25,26 +25,11 @@ Array.implement({
 	}
 });
 
-define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/ShortcutManager.js', 'js/Project.js'], function(menu, httpFileSystem, file_editor, tab_panel, shortcut_manager, project) {
+define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/ShortcutManager.js', 'js/Project.js', 'js/ProjectNavigator.js'], function(menu, httpFileSystem, file_editor, tab_panel, shortcut_manager, project, project_navigator) {
 	var VDText = new Class({
 		Implements: Events,
 		initialize_gui: function() {
 			var self = this;
-			
-			this.store = Ext.create('Ext.data.TreeStore', {
-				root: {
-					text: 'root',
-					id: 'src',
-					expanded: true,
-					icon: 'img/folder.png',
-				},
-				autoLoad: true,
-				folderSort: true,
-				sorters: [{
-					property: 'text',
-					direction: 'ASC'
-				}]
-			});
 			
 			this.viewport = Ext.create('Ext.Viewport', {
 				id: 'border-example',
@@ -62,25 +47,10 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 					},
 					{
 						region: 'west',
-						//contentEl: 'fileList',
+						id: 'west-p',
 						width: 150,
 						minWidth: 100,
-						rootVisible: false,
-						split: true,
-						//collapsible: true,
-						//resizable: true,
-						//border: false
-						xtype: 'treepanel',
-						
-						//height: '100%',
-						store: this.store,
-						title: 'Files',
-						useArrows: true,
-						listeners: {
-							itemclick: function(view, record, item, index, event) {            
-								self.openFile(record.data.text, record.data.text, true);
-							}
-						}
+						contentEl: 'west'
 					},
 					{
 						region: 'center',
@@ -95,7 +65,8 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 							{
 								region: 'center',
 								contentEl: 'pages',
-								flex: 1
+								flex: 1,
+								height: '100%'
 							}
 						]
 					}
@@ -108,6 +79,8 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 			
 			var mainMenu = new menu.Menu($$('#toolbar')[0], this);
 			
+			this.projectNavigator = new project_navigator.ProjectNavigator(this, 'west');
+			//this.projectNavigator.renderTo('west-p');
 			
 			this.initialize_gui();
 			
@@ -241,7 +214,8 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 					});*/
 					
 					self.project.getFileSystem().list('/', function(data) {
-						var root = self.store.getRootNode().appendChild({text: self.project.getName(), icon: 'img/folder.png', expanded: true});
+						console.log(data);
+						var root = self.projectNavigator.store.getRootNode().appendChild({text: self.project.getName(), icon: 'img/folder.png', expanded: true});
 						$each(data, function(item, i) {
 							root.appendChild({text: item.filename, leaf: true, icon: 'img/file.png'});
 						});
@@ -257,7 +231,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 		shortcutManager: null,
 		viewport: null,
 		project: null,
-		store: null
+		projectNavigator: null
 	});
 	
 	return {
