@@ -29,26 +29,77 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 	var VDText = new Class({
 		Implements: Events,
 		initialize_gui: function() {
+			var self = this;
+			
+			this.store = Ext.create('Ext.data.TreeStore', {
+				root: {
+					text: 'root',
+					id: 'src',
+					expanded: true,
+					icon: 'img/folder.png',
+				},
+				autoLoad: true,
+				folderSort: true,
+				sorters: [{
+					property: 'text',
+					direction: 'ASC'
+				}]
+			});
 			
 			this.viewport = Ext.create('Ext.Viewport', {
 				id: 'border-example',
 				layout: 'border',
+				defaults: {
+					split: true
+				},
+				
 				items: [
 					{
 						region: 'north',
-						contentEl: 'toolbar'
-					},
-					{
-						region: 'center',
-						contentEl: 'tabPanel'
+						contentEl: 'toolbar',
+						resizable: false,
+						split: false
 					},
 					{
 						region: 'west',
-						contentEl: 'fileList',
+						//contentEl: 'fileList',
 						width: 150,
+						minWidth: 100,
+						rootVisible: false,
+						split: true,
 						//collapsible: true,
-						resizable: true
+						//resizable: true,
+						//border: false
+						xtype: 'treepanel',
+						
+						//height: '100%',
+						store: this.store,
+						title: 'Files',
+						useArrows: true,
+						listeners: {
+							itemclick: function(view, record, item, index, event) {            
+								self.openFile(record.data.text, record.data.text, true);
+							}
+						}
+					},
+					{
+						region: 'center',
+						contentEl: 'tabPanel',
+						flex: 1,
+						items: [
+							{
+								region: 'north',
+								contentEl: 'tabs',
+								height: 25
+							},
+							{
+								region: 'center',
+								contentEl: 'pages',
+								flex: 1
+							}
+						]
 					}
+					
 				]
 			});
 		},
@@ -112,7 +163,6 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 			self.tabPanel.add(filename, pageId, fileEditor, active);
 			fileEditor.fireEvent('start_waiting');
 			
-			console.log(self.project.getFileSystem());
 			self.project.getFileSystem().open(filename, function(content) {
 				var fileContent = content;
 				fileEditor.setContent(content);
@@ -154,53 +204,42 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 					self.project = new project.Project();
 					self.project.open([httpFileSystem], conf);
 					
+					//self.openFile("test1.js", "test1", true);
 					/*var store = Ext.create('Ext.data.TreeStore', {
-						proxy: {
-							type: 'ajax',
-							url: 'get-nodes.php'
-						},
 						root: {
-							text: 'Ext JS',
+							text: self.project.getName(),
 							id: 'src',
-							expanded: true
+							expanded: true,
+							icon: 'img/folder.png'
 						},
+						autoLoad: true,
 						folderSort: true,
 						sorters: [{
 							property: 'text',
 							direction: 'ASC'
 						}]
-					});
-					
-					var tree = Ext.create('Ext.tree.Panel', {
-						store: store,
-						viewConfig: {
-							plugins: {
-								//ptype: 'treeviewdragdrop'
-							}
-						},
-						renderTo: 'fileList',
-						height: 300,
-						width: 150,
-						title: 'Files',
-						useArrows: true,
-						dockedItems: [{
-							xtype: 'toolbar',
-							items: [{
-								text: 'Expand All',
-								handler: function() {
-									tree.expandAll();
-								}
-							}, {
-								text: 'Collapse All',
-								handler: function() {
-									tree.collapseAll();
-								}
-							}]
-						}]
 					});*/
 					
-					self.project.getFileSystem().list('/', function(){
-						
+					/*var tree = Ext.create('Ext.tree.Panel', {
+						store: store,
+						renderTo: 'fileList',
+						flex: 1,
+						height: '100%',
+						width: '100%',
+						title: 'Files',
+						useArrows: true,
+						listeners: {
+							itemclick: function(view, record, item, index, event) {            
+								self.openFile(record.data.text, record.data.text, true);
+							}
+						}
+					});*/
+					
+					self.project.getFileSystem().list('/', function(data) {
+						var root = self.store.getRootNode().appendChild({text: self.project.getName(), icon: 'img/folder.png', expanded: true});
+						$each(data, function(item, i) {
+							root.appendChild({text: item.filename, leaf: true, icon: 'img/file.png'});
+						});
 					});
 					self.fireEvent('file_system_initialized');
 				}
@@ -212,7 +251,8 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 		untitled: 1,
 		shortcutManager: null,
 		viewport: null,
-		project: null
+		project: null,
+		store: null
 	});
 	
 	return {

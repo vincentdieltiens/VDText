@@ -47,7 +47,8 @@ define(["js/fs/FileSystem"], function(fss) {
 					path: path
 				},
 				onComplete: function(data) {
-					done(data.content);
+					
+					done(data);
 				}
 			});
 			

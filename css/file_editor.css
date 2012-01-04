@@ -6,7 +6,7 @@
 	left: 0;
 	bottom: 26px; /* tab height !!! */
 	right: 0;
-	
+	background-color: #fff;
 	font-familiy: Monaco, Verdana;
 	display: none;
 }

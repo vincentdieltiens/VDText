@@ -5,7 +5,8 @@ $path = $_POST['path'];
 $filenames = array();
 foreach(glob("*") as $filename) {
 	$filenames[] = array(
-		'filename' => $filename
+		'filename' => $filename,
+		'type' => is_dir($filename) ? 'directory' : 'file'
 	);
 }
 

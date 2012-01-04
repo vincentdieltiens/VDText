@@ -32,6 +32,9 @@ define({
 		getFileSystem: function() {
 			return this.fs;
 		},
+		getName: function() {
+			return this.conf['name'];
+		},
 		conf: null,
 		fs: null
 	}),
