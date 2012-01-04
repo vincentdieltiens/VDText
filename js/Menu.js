@@ -1,28 +1,37 @@
 define([], function() {
 	var Menu = new Class({
-		initialize: function($container) {
+		initialize: function($container, vdtext) {
+			var self = this;
+			
 			this.$container = $container;
+			this.vdtext = vdtext;
+			
+			var $inputProjectFile = new Element('input');
+			$inputProjectFile.set('type', 'file');
+			$inputProjectFile.set('name', 'openProjectFile');
+			$inputProjectFile.setStyles({
+				'position': 'absolute',
+				'top': -100
+			});
+			$$('body').adopt($inputProjectFile, 'bottom');
+			
+			$inputProjectFile.addEvent('change', function(event) {
+				self.vdtext.fireEvent('open_project', event);
+			});
 			
 			var fileMenu = Ext.create('Ext.menu.Menu', {
 				id: 'fileMenu',
 				style: {
 					overflow: 'visible' // For the Combo popup
 				},
-				items: [
-					{text: 'New'},
-					{text: 'Open'},
-					{text: 'Close'},
-					{text: 'Close Tab'},
-					{text: 'Save'},
-					{text: 'Save As'},
-					{text: 'Save All'},
-					'-',
-					{text: 'New project'},
-					{text: 'Save project'},
-					{text: 'Save project As'},
-					'-',
-					{text: 'Print'}
-				]
+				items: [{
+					text: 'Open project',
+					handler: function() {
+						$inputProjectFile.click();
+						
+						//var files = evt.target.files
+					}
+				}]
 			});
 			
 			var editMenu = Ext.create('Ext.menu.Menu', {
@@ -58,7 +67,8 @@ define([], function() {
 		getExtJsToolbar: function() {
 			return this.toolbar;
 		},
-		$container: null
+		$container: null,
+		vdtext: null
 	});
 	
 	return {

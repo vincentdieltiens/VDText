@@ -25,28 +25,89 @@ Array.implement({
 	}
 });
 
-define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/ShortcutManager'], function(menu, httpFileSystem, file_editor, tab_panel, shortcut_manager) {
+define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/ShortcutManager.js', 'js/Project.js'], function(menu, httpFileSystem, file_editor, tab_panel, shortcut_manager, project) {
 	var VDText = new Class({
+		Implements: Events,
 		initialize_gui: function() {
+			var self = this;
+			
+			this.store = Ext.create('Ext.data.TreeStore', {
+				root: {
+					text: 'root',
+					id: 'src',
+					expanded: true,
+					icon: 'img/folder.png',
+				},
+				autoLoad: true,
+				folderSort: true,
+				sorters: [{
+					property: 'text',
+					direction: 'ASC'
+				}]
+			});
+			
 			this.viewport = Ext.create('Ext.Viewport', {
 				id: 'border-example',
 				layout: 'border',
+				defaults: {
+					split: true
+				},
+				
 				items: [
 					{
 						region: 'north',
-						contentEl: 'toolbar'
+						contentEl: 'toolbar',
+						resizable: false,
+						split: false
+					},
+					{
+						region: 'west',
+						//contentEl: 'fileList',
+						width: 150,
+						minWidth: 100,
+						rootVisible: false,
+						split: true,
+						//collapsible: true,
+						//resizable: true,
+						//border: false
+						xtype: 'treepanel',
+						
+						//height: '100%',
+						store: this.store,
+						title: 'Files',
+						useArrows: true,
+						listeners: {
+							itemclick: function(view, record, item, index, event) {            
+								self.openFile(record.data.text, record.data.text, true);
+							}
+						}
 					},
 					{
 						region: 'center',
-						contentEl: 'tabPanel'
+						contentEl: 'tabPanel',
+						flex: 1,
+						items: [
+							{
+								region: 'north',
+								contentEl: 'tabs',
+								height: 25
+							},
+							{
+								region: 'center',
+								contentEl: 'pages',
+								flex: 1
+							}
+						]
 					}
+					
 				]
 			});
 		},
 		initialize: function() {
 			var self = this;
 			
-			var mainMenu = new menu.Menu($$('#toolbar')[0]);
+			var mainMenu = new menu.Menu($$('#toolbar')[0], this);
+			
 			
 			this.initialize_gui();
 			
@@ -59,16 +120,19 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 				self.newFile(true);
 			});
 			
-			this.fileSystem = new httpFileSystem.HttpFileSystem('localhost', {
-				save: '/vdtext/connector/save.php',
-				open: '/vdtext/connector/open.php'
+			this.addEvent('open_project', function(event) {
+				var files = event.target.files;
+				
+				for (var i = 0, f; f = files[i]; i++) {
+					self.openProject(f);
+				}
 			});
 			
 			// When the user click on cmd+s
 			var shortcutManager = new shortcut_manager.ShortcutManager($(window), {
-				'preventDefaultAll': true,
+				preventDefaultAll: true
 			}, {
-				'cmd+s': function(event) {
+				'cmd+s': function() {
 					self.saveFile(self.tabPanel.getActiveIndex());
 				},
 				'cmd+n': function(event) {
@@ -76,6 +140,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 					self.newFile(true);
 				}
 			});
+			
 		},
 		saveFile: function(index) {
 			var self = this;
@@ -83,7 +148,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 			var page = self.tabPanel.getPage(index);
 			page.fireEvent('start_waiting');
 			
-			self.fileSystem.save(page.getContent(), page.getFilename(), function(){
+			self.project.getFileSystem().save(page.getContent(), page.getFilename(), function(){
 				page.fireEvent('stop_waiting');
 				page.setDirty(false);
 			});
@@ -103,7 +168,7 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 			self.tabPanel.add(filename, pageId, fileEditor, active);
 			fileEditor.fireEvent('start_waiting');
 			
-			this.fileSystem.open(filename, function(content) {
+			self.project.getFileSystem().open(filename, function(content) {
 				var fileContent = content;
 				fileEditor.setContent(content);
 				fileEditor.fireEvent('stop_waiting');
@@ -133,11 +198,66 @@ define(['js/Menu', 'js/fs/HttpFileSystem', 'js/FileEditor', 'js/TabPanel', 'js/S
 			// Add the file editor to the tab panel
 			this.tabPanel.add(filename, pageId, fileEditor, active);
 		},
+		openProject: function(file) {
+			var self = this;
+			var reader = new FileReader();
+			
+			reader.onload = (function(theFile) {
+				return function(e) {
+					
+					var conf = JSON.decode(e.target.result);
+					self.project = new project.Project();
+					self.project.open([httpFileSystem], conf);
+					
+					//self.openFile("test1.js", "test1", true);
+					/*var store = Ext.create('Ext.data.TreeStore', {
+						root: {
+							text: self.project.getName(),
+							id: 'src',
+							expanded: true,
+							icon: 'img/folder.png'
+						},
+						autoLoad: true,
+						folderSort: true,
+						sorters: [{
+							property: 'text',
+							direction: 'ASC'
+						}]
+					});*/
+					
+					/*var tree = Ext.create('Ext.tree.Panel', {
+						store: store,
+						renderTo: 'fileList',
+						flex: 1,
+						height: '100%',
+						width: '100%',
+						title: 'Files',
+						useArrows: true,
+						listeners: {
+							itemclick: function(view, record, item, index, event) {            
+								self.openFile(record.data.text, record.data.text, true);
+							}
+						}
+					});*/
+					
+					self.project.getFileSystem().list('/', function(data) {
+						var root = self.store.getRootNode().appendChild({text: self.project.getName(), icon: 'img/folder.png', expanded: true});
+						$each(data, function(item, i) {
+							root.appendChild({text: item.filename, leaf: true, icon: 'img/file.png'});
+						});
+					});
+					self.fireEvent('file_system_initialized');
+				}
+			})(file);
+			
+			reader.readAsText(file);
+		},
 		tabPanel: null,
 		untitled: 1,
-		fileSystem: null,
 		shortcutManager: null,
-		viewport: null
+		viewport: null,
+		project: null,
+		store: null
 	});
 	
 	return {

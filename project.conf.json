@@ -1,0 +1,14 @@
+{
+	"name": "VDText",
+	"filesystem": {
+		"class": "HttpFileSystem",
+		"parameters": {
+			"domain": "localhost",
+			"scripts": {
+				"open": "/vdtext/connector/HttpFileSystem/open.php",
+				"save": "/vdtext/connector/HttpFileSystem/save.php",
+				"list": "/vdtext/connector/HttpFileSystem/list.php"
+			}
+		} 
+	}
+}

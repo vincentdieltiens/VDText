@@ -2,14 +2,14 @@ define(["js/fs/FileSystem"], function(fss) {
 	
 	var HttpFileSystem = new Class({
 		Implements: fss.FileSystem,
-		initialize: function(domain, scripts) {
+		initialize: function(param) {
 			
-			this.scripts = $extend(this.scripts, scripts);
+			this.scripts = $extend(this.scripts, param.scripts);
 				
-			if( !domain.match(/^http:\/\//) ) {
-				this.domain = 'http://'+domain;
+			if( !param.domain.match(/^http:\/\//) ) {
+				this.domain = 'http://'+param.domain;
 			} else {
-				this.domain = domain;
+				this.domain = param.domain;
 			}
 		},
 		save: function(content, path, done) {
@@ -39,10 +39,26 @@ define(["js/fs/FileSystem"], function(fss) {
 			
 			request.send();
 		},
+		list: function(path, done) {
+			
+			var request = new Request.JSON({
+				url: this.domain+this.scripts.list,
+				data: {
+					path: path
+				},
+				onComplete: function(data) {
+					
+					done(data);
+				}
+			});
+			
+			request.send();
+		},
 		domain: null,
 		scripts: {
 			save: '/save.php',
-			open: '/open.php'
+			open: '/open.php',
+			list: '/list.php'
 		}
 	}) ;
 	
