@@ -46,9 +46,14 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 	 */
 	var VDText = new Class({
 		Implements: Events,
+		/**
+		 * Initiliaze the general GUI structure of VDText and inject it in the
+		 * dom
+		 */
 		initialize_gui: function() {
 			var self = this;
 			
+			// Creates the basic structure of VDText
 			this.viewport = Ext.create('Ext.Viewport', {
 				id: 'vdtext',
 				layout: 'border',
@@ -66,8 +71,7 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 						region: 'west',
 						id: 'west-p',
 						width: 150,
-						minWidth: 100,
-						contentEl: 'west'
+						minWidth: 100
 					},
 					{
 						region: 'center',
@@ -91,6 +95,9 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 				]
 			});
 		},
+		/**
+		 * Initialize VDText 
+		 */
 		initialize: function() {
 			// Keep reference to this object
 			var self = this;
@@ -98,11 +105,14 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 			// Constructs the main menu and attach it to the top
 			this.mainMenu = new menu.Menu($$('#toolbar')[0], this);
 			
-			this.projectNavigator = new project_navigator.ProjectNavigator(this, Ext.get('west-p'));
-			
+			// Initialize the gui
 			this.initialize_gui();
 			
-			// Create the tab panel
+			// Creates the project navigator and add it to the west panel
+			this.projectNavigator = new project_navigator.ProjectNavigator(this);
+			Ext.getCmp('west-p').add(this.projectNavigator.getTree());
+			
+			// Creates the tab panel
 			this.tabPanel = new tab_panel.TabPanel($$('#tabs'), $$('#pages'));
 			
 			// Get event when tab panel says that the user wants to create
@@ -111,6 +121,7 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 				self.newFile(true);
 			});
 			
+			// Add handler on the open_project event
 			this.addEvent('open_project', function(event) {
 				var files = event.target.files;
 				
@@ -119,7 +130,7 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 				}
 			});
 			
-			// When the user click on cmd+s
+			// Configure shortcuts
 			var shortcutManager = new shortcut_manager.ShortcutManager($(window), {
 				preventDefaultAll: true
 			}, {
@@ -133,21 +144,37 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 			});
 			
 		},
+		/**
+		 * Save the file at a given index in the tab panel
+		 * @param index : the index (in the tab panel) of the file to save
+		 */
 		saveFile: function(index) {
 			var self = this;
 			
+			// Get the page at the given index
 			var page = self.tabPanel.getPage(index);
+			
+			// Notify to the page that we are working on it
 			page.fireEvent('start_waiting');
 			
-			self.project.getFileSystem().save(page.getContent(), page.getFilename(), function(){
+			page.getProject().getFileSystem().save(page.getContent(), page.getFilename(), function() {
+				// Notify to the page that we are not working on it anymore
 				page.fireEvent('stop_waiting');
+				
 				page.setDirty(false);
 			});
 		},
-		openFile: function(filename, pageId, active) {
+		/**
+		 * Open a file in the editor
+		 * @param filename : the filename of the file to open
+		 * @param project: the project containing the file
+		 * @param pageId : the id to give to the page
+		 * @param active : is the new tab the new active one ?
+		 */
+		openFile: function(filename, project, pageId, active) {
 			var self = this;
 			
-			active = $defined(active) && active == true;
+			var active = $defined(active) && active == true;
 			
 			// Creates the html Page
 			var $page = new Element('div', {
@@ -155,21 +182,41 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 				'id': pageId
 			});
 			
-			var fileEditor = new file_editor.FileEditor($page, filename, "");
+			// Creates the editor
+			var fileEditor = new file_editor.FileEditor($page, filename, "", project);
+			
+			// Adds the editor to the tab panel
 			self.tabPanel.add(filename, pageId, fileEditor, active);
+			
+			// Notify the page/editor that we are working on it
 			fileEditor.fireEvent('start_waiting');
 			
-			self.project.getFileSystem().open(filename, function(content) {
+			// Load the given file using the filesystem. When it's opened,
+			// put it in the edito
+			project.getFileSystem().open(filename, function(content) {
 				var fileContent = content;
 				fileEditor.setContent(content);
-				fileEditor.fireEvent('stop_waiting');
 				fileEditor.setDirty(false);
+				
+				// Notify the page/editor that we are not working on it anymore
+				fileEditor.fireEvent('stop_waiting');
 			});
 		},
+		/**
+		 * Open a new file in VDText
+		 * @param active : is the new tab the new active one ?
+		 */
 		newFile: function(active) {
 			this.loadFile("Untitled "+this.untitled, "", "untitled_"+this.untitled, active)	
 			this.untitled++;
 		},
+		/**
+		 * Load a file for which we already have the content
+		 * @param filename : the filename
+		 * @param fileContent : the content of the file to open
+		 * @param pageId : the id to give to the page
+		 * @param active : is this tab the new active one ?
+		 */
 		loadFile: function(filename, fileContent, pageId, active) {
 			active = $defined(active) && active == true;
 			
@@ -181,44 +228,78 @@ define(modules, function(menu, httpFileSystem, file_editor, tab_panel, shortcut_
 			
 			// Creates the editor for this page
 			var fileEditor = new file_editor.FileEditor($page, filename, fileContent);
-			/* Done is the FileEditor class now (by extending page)
-				this.addEvent('active', function() {
-				this.refresh();
-			});*/
-
+			
 			// Add the file editor to the tab panel
 			this.tabPanel.add(filename, pageId, fileEditor, active);
 		},
+		/**
+		 * Open a project file and load the file list
+		 * @param file : the project file object
+		 */
 		openProject: function(file) {
 			var self = this;
+			
+			// Creates the reader
 			var reader = new FileReader();
 			
+			// When file is loaded
 			reader.onload = (function(theFile) {
 				return function(e) {
-					
+					// Get the JSON configuration of the file
 					var conf = JSON.decode(e.target.result);
-					self.project = new project.Project();
-					self.project.open([httpFileSystem], conf);
-					self.project.getFileSystem().list('/', function(data) {
-						console.log(data);
-						var root = self.projectNavigator.store.getRootNode().appendChild({text: self.project.getName(), icon: 'img/folder.png', expanded: true});
+					
+					// Creates the project
+					var p = new project.Project();
+					
+					// Open the project
+					p.open([httpFileSystem], conf);
+					
+					// Get the file list and show it in the project navigator
+					p.getFileSystem().list('/', function(data) {
+						var root = self.projectNavigator.store.getRootNode().appendChild({
+							text: p.getName(), 
+							icon: 'img/folder.png', 
+							expanded: true,
+							project: p
+						});
+						
 						$each(data, function(item, i) {
-							root.appendChild({text: item.filename, leaf: true, icon: 'img/file.png'});
+							root.appendChild({
+								text: item.filename, 
+								leaf: true, 
+								icon: 'img/file.png',
+								rootNode: root
+							});
 						});
 					});
-					self.fireEvent('file_system_initialized');
 					
+					// Add this project to the loaded projects
+					self.projects.push(p);
+					
+					// Notify that the filesystem is initialize
+					self.fireEvent('file_system_initialized');
 				}
 			})(file);
 			
+			// Load and read the text file
 			reader.readAsText(file);
 		},
+		/**
+		 * Instances
+		 */
+		// The tab pabel
 		tabPanel: null,
+		// The index for the next new (untitled) file
 		untitled: 1,
+		// The shortcut manager
 		shortcutManager: null,
+		// The general viewport of VDText
 		viewport: null,
-		project: null,
+		// The loaded projects
+		projects: [],
+		// The project Navigator
 		projectNavigator: null,
+		// The main menu
 		mainMenu: null
 	});
 	

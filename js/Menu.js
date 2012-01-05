@@ -9,6 +9,7 @@ define([], function() {
 			var $inputProjectFile = new Element('input');
 			$inputProjectFile.set('type', 'file');
 			$inputProjectFile.set('name', 'openProjectFile');
+			$inputProjectFile.set('multiple', 1);
 			$inputProjectFile.setStyles({
 				'position': 'absolute',
 				'top': -100
@@ -28,9 +29,11 @@ define([], function() {
 					text: 'Open project',
 					handler: function() {
 						$inputProjectFile.click();
-						
-						//var files = evt.target.files
 					}
+				},
+				{
+					text: 'Open recent project',
+					items: []
 				}]
 			});
 			

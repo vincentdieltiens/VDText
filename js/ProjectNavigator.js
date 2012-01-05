@@ -9,7 +9,7 @@ define([], {
 				listeners: {
 					itemdblclick: function(view, record, item, index, event) {
 						if( record.data.leaf ) {
-							self.vdtext.openFile(record.data.text, record.data.text, true);
+							self.vdtext.openFile(record.data.text, record.data.rootNode.data.project, record.data.text, true);
 						}
 					}
 				},
@@ -21,7 +21,6 @@ define([], {
 				flex: 1,
 				height: '100%'
 			});
-					
 		},
 		initialize: function(vdtext, renderTo) {
 			this.vdtext = vdtext;
@@ -44,7 +43,8 @@ define([], {
 			this.initialize_gui(renderTo);
 		},
 		renderTo: function(id) {
-			this.tree.render(id);
+			
+			//this.tree.render(id);
 		},
 		getTree: function() {
 			return this.tree;

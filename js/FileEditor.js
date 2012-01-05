@@ -1,13 +1,14 @@
 define(['js/Page', 'js/MessageBox'], function(page, messageBox) {
 	var FileEditor = new Class({
 		Extends: page.Page,
-		initialize: function($pageDiv, filename, fileContent) {
+		initialize: function($pageDiv, filename, fileContent, project) {
 			this.parent();
 
 			var self = this;
 
 			this.filename = filename;
 			this.$pageDiv = $pageDiv;
+			this.project = project;
 
 			this.$editor = new Element('div', {
 				'class': 'editor'
@@ -59,8 +60,8 @@ define(['js/Page', 'js/MessageBox'], function(page, messageBox) {
 		getElement: function() {
 			return this.$pageDiv;
 		},
-		save: function() {
-			console.log('save '+this.filename);
+		getProject: function() {
+			return this.project;
 		},
 		setOnDisk: function(onDisk) {
 			this.onDisk = onDisk;
@@ -84,7 +85,8 @@ define(['js/Page', 'js/MessageBox'], function(page, messageBox) {
 		codeMirror: null,
 		filename: null,
 		dirty: false,
-		onDisk: false
+		onDisk: false,
+		project: null
 	});
 	
 	return {
