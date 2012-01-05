@@ -1,6 +1,11 @@
 define([], {
 	ProjectNavigator: new Class({
 		Implements: Events,
+		/**
+		 * Creates the tree that display files
+		 * @param renderTo : an element id, or an Ext component in which
+		 * we render the tree
+		 */
 		initialize_gui: function(renderTo) {
 			var self = this;
 			
@@ -22,6 +27,12 @@ define([], {
 				height: '100%'
 			});
 		},
+		/**
+		 * Initialize the Project Navigator
+		 * @param vdtext : the vdtext instance
+		 * @param renderTo : an element id or an Ext component in which to render
+		 *    the project navigator
+		 */
 		initialize: function(vdtext, renderTo) {
 			this.vdtext = vdtext;
 			
@@ -42,18 +53,28 @@ define([], {
 			
 			this.initialize_gui(renderTo);
 		},
-		renderTo: function(id) {
-			
-			//this.tree.render(id);
-		},
+		/**
+		 * Get the tree of the project navigator
+		 * @return the Ext.tree.Panel
+		 */
 		getTree: function() {
 			return this.tree;
 		},
+		/**
+		 * Get the tree store of the project navigator
+		 * @return the Ext.data.TreeStore
+		 */
 		getStore: function() {
 			return this.store;
 		},
+		/**
+		 * Instances
+		 */
+		// The vdtext general instance
 		vdtext: null,
+		// The tree store
 		store: null,
+		// The tree
 		tree: null
 	})
 });

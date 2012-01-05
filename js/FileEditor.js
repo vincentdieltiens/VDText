@@ -1,6 +1,6 @@
 define(['js/Page', 'js/MessageBox'], function(page, messageBox) {
 	var FileEditor = new Class({
-		Extends: page.Page,
+		Extends: page.AbstractPage,
 		initialize: function($pageDiv, filename, fileContent, project) {
 			this.parent();
 
