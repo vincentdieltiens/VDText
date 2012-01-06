@@ -7,5 +7,5 @@ function load7() {
 }
 
 function load8() {
-  console.log('load8-save');
+  console.log('load8');
 }
